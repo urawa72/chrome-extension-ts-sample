@@ -1,27 +1,10 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 
-const getBoards = () => {
-  const boards = document.querySelectorAll("[data-board-column]");
-  boards.forEach((board) => {
-    const b: any = document.getElementById(board.id);
-    const pointNodes = b.querySelectorAll(
-      '[data-test-id="custom-label-point"]'
-    );
-    let sum: any = [];
-    pointNodes.forEach((p: any) => {
-      sum.push(Number(p.textContent));
-    });
-    const points = sum.reduce((acc: number, cur: number) => {
-      return acc + cur;
-    }, 0);
-    console.log(points);
-  });
-};
-
 const Popup = () => {
   const [count, setCount] = useState(0);
   const [currentURL, setCurrentURL] = useState<string>();
+  const [points, setPoints] = useState<number>();
 
   useEffect(() => {
     chrome.action.setBadgeText({ text: count.toString() });
@@ -31,10 +14,17 @@ const Popup = () => {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       setCurrentURL(tabs[0].url);
     });
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const tab = tabs[0];
+      if (tab.id) {
+        chrome.tabs.sendMessage(tab.id, undefined, (points) =>
+          setPoints(points)
+        );
+      }
+    });
   }, []);
 
   const changeBackground = () => {
-    getBoards();
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       const tab = tabs[0];
       if (tab.id) {
@@ -56,6 +46,7 @@ const Popup = () => {
       <ul style={{ minWidth: "700px" }}>
         <li>Current URL: {currentURL}</li>
         <li>Current Time: {new Date().toLocaleTimeString()}</li>
+        <li>Current Points: {points}</li>
       </ul>
       <button
         onClick={() => setCount(count + 1)}
