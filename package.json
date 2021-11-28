@@ -1,7 +1,7 @@
 {
-  "name": "chrome-extension-typescript-starter",
+  "name": "chrome-extension-ts-sample",
   "version": "1.0.0",
-  "description": "chrome-extension-typescript-starter",
+  "description": "chrome-extension-ts-sample",
   "main": "index.js",
   "scripts": {
     "watch": "webpack --config webpack/webpack.dev.js --watch",
@@ -12,10 +12,6 @@
   },
   "author": "",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/chibat/chrome-extension-typescript-starter.git"
-  },
   "dependencies": {
     "react": "^17.0.1",
     "react-dom": "^17.0.1"
@@ -25,10 +21,15 @@
     "@types/jest": "^27.0.2",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
     "copy-webpack-plugin": "^9.0.1",
+    "eslint": "^8.3.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "glob": "^7.1.6",
     "jest": "^27.2.1",
-    "prettier": "^2.2.1",
+    "prettier": "^2.5.0",
     "rimraf": "^3.0.2 ",
     "ts-jest": "^27.0.5",
     "ts-loader": "^8.0.0",
