@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
+import { ChakraProvider } from '@chakra-ui/react';
+import { Button } from '@chakra-ui/react';
+import { Container } from '@chakra-ui/react';
+import { Divider } from '@chakra-ui/react';
+import { Text } from '@chakra-ui/react';
+import { Link } from '@chakra-ui/react';
+import { Stat, StatLabel, StatNumber, StatGroup } from '@chakra-ui/react';
+import { Stack } from '@chakra-ui/react';
 
 const Popup = () => {
+  const [iterationNumber, setIterationNumber] = useState<number>(0);
   const [inProgressStatusName, setInProgressStatusName] =
     useState<string>('In Progress');
   const [reviewStatusName, setReviewStatusName] = useState<string>('Review');
@@ -14,12 +23,14 @@ const Popup = () => {
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       chrome.storage.local.get().then((data) => {
-        if (data.inProgressStatusName)
+        if (data?.inProgressStatusName) {
           setInProgressStatusName(data.inProgressStatusName);
-        if (data.reviewStatusName) setReviewStatusName(data.reviewStatusName);
-        if (data.plannedPoints) setPlannedPoints(data.plannedPoints);
-        if (data.totalPoints) setTotalPoints(data.totalPoints);
-        setInProgress(!!data.inProgress);
+        }
+        if (data?.reviewStatusName) setReviewStatusName(data.reviewStatusName);
+        if (data?.plannedPoints) setPlannedPoints(data.plannedPoints);
+        if (data?.totalPoints) setTotalPoints(data.totalPoints);
+        if (data?.iterationNumber) setIterationNumber(data.iterationNumber);
+        setInProgress(!!data?.inProgress);
       });
       const tab = tabs[0];
       if (tab.id) {
@@ -58,35 +69,77 @@ const Popup = () => {
   };
 
   return (
-    <>
-      <h6>Point information</h6>
-      <ul style={{ minWidth: '300px' }}>
-        <li>Planned Points: {plannedPoints}</li>
-        <li>
-          {inProgressStatusName} Points: {inProgressPoints}
-        </li>
-        <li>
-          {reviewStatusName} Points: {reviewPoints}
-        </li>
-        <li>
-          Finished Points: {inProgress ? plannedPoints - inProgressPoints : '-'}
-        </li>
-        <li>Total Points: {totalPoints}</li>
-      </ul>
-      <button onClick={start} disabled={inProgress}>
-        Start
-      </button>
-      <button onClick={finished} disabled={!inProgress}>
-        Finished
-      </button>
-      <a href={chrome.runtime.getURL('options.html')}>Options</a>
-    </>
+    <Container p={4} w={500}>
+      <Text fontSize="xl">Point information</Text>
+      <Divider />
+      <StatGroup pt={2}>
+        <Stat>
+          <StatLabel>Iteration</StatLabel>
+          <StatNumber>{iterationNumber}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>Total</StatLabel>
+          <StatNumber>{totalPoints}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>Velocity</StatLabel>
+          <StatNumber>
+            {0 < iterationNumber ? totalPoints / iterationNumber : '-'}
+          </StatNumber>
+        </Stat>
+      </StatGroup>
+      <StatGroup pt={2}>
+        <Stat>
+          <StatLabel>Planned</StatLabel>
+          <StatNumber>{plannedPoints}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>In Progress</StatLabel>
+          <StatNumber>{inProgressPoints}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>Review</StatLabel>
+          <StatNumber>{reviewPoints}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>Done</StatLabel>
+          <StatNumber>
+            {inProgress ? plannedPoints - inProgressPoints : '-'}
+          </StatNumber>
+        </Stat>
+      </StatGroup>
+      <Stack direction="row" align="center" pt={4}>
+        <Button
+          onClick={start}
+          disabled={inProgress}
+          size="xs"
+          colorScheme="teal"
+          width="80px"
+        >
+          Start
+        </Button>
+        <Button
+          onClick={finished}
+          disabled={!inProgress}
+          size="xs"
+          colorScheme="teal"
+          width="80px"
+        >
+          Finished
+        </Button>
+        <Link color="teal.500" href={chrome.runtime.getURL('options.html')}>
+          Options
+        </Link>
+      </Stack>
+    </Container>
   );
 };
 
 ReactDOM.render(
   <React.StrictMode>
-    <Popup />
+    <ChakraProvider>
+      <Popup />
+    </ChakraProvider>
   </React.StrictMode>,
   document.getElementById('root'),
 );

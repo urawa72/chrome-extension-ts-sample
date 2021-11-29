@@ -18,7 +18,7 @@ chrome.runtime.onMessage.addListener(function (
     sendResponse(getBoards(msg));
   }
   chrome.storage.local.get().then((data) => {
-    console.log(data);
+    console.log('Storage:', data);
   });
 });
 
@@ -33,20 +33,18 @@ const getBoards = (msg: GetPointsEvent) => {
         '[data-test-id="custom-label-point"]',
       );
       const points = Array.from(pointNodes).map((p) => Number(p.textContent));
-      const totalPoints = points.reduce((acc: number, cur: number) => {
+      inProgressPoints = points.reduce((acc: number, cur: number) => {
         return acc + cur;
       }, 0);
-      inProgressPoints = totalPoints;
     }
     if (b && b.dataset.boardColumn === msg.reviewStatusName) {
       const pointNodes = b.querySelectorAll(
         '[data-test-id="custom-label-point"]',
       );
       const points = Array.from(pointNodes).map((p) => Number(p.textContent));
-      const totalPoints = points.reduce((acc: number, cur: number) => {
+      reviewPoints = points.reduce((acc: number, cur: number) => {
         return acc + cur;
       }, 0);
-      reviewPoints = totalPoints;
     }
   });
   return { inProgressPoints, reviewPoints };
