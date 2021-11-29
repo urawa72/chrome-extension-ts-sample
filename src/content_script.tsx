@@ -4,26 +4,31 @@ interface MessageType {
   type: EventType;
 }
 
+interface GetPointsEvent {
+  inProgressStatusName: string;
+  reviewStatusName: string;
+}
+
 chrome.runtime.onMessage.addListener(function (
-  msg: MessageType,
+  msg: MessageType & GetPointsEvent,
   _,
   sendResponse,
 ) {
   if (msg.type === 'GetPoints') {
-    sendResponse(getBoards());
+    sendResponse(getBoards(msg));
   }
   chrome.storage.local.get().then((data) => {
     console.log(data);
   });
 });
 
-const getBoards = () => {
+const getBoards = (msg: GetPointsEvent) => {
   const boards = document.querySelectorAll('[data-board-column]');
   let inProgressPoints = 0;
   let reviewPoints = 0;
   boards.forEach((board) => {
     const b: HTMLElement | null = document.getElementById(board.id);
-    if (b && b.dataset.boardColumn == 'In Progress') {
+    if (b && b.dataset.boardColumn === msg.inProgressStatusName) {
       const pointNodes = b.querySelectorAll(
         '[data-test-id="custom-label-point"]',
       );
@@ -33,7 +38,7 @@ const getBoards = () => {
       }, 0);
       inProgressPoints = totalPoints;
     }
-    if (b && b.dataset.boardColumn == 'Review') {
+    if (b && b.dataset.boardColumn === msg.reviewStatusName) {
       const pointNodes = b.querySelectorAll(
         '[data-test-id="custom-label-point"]',
       );

@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 
 const Popup = () => {
+  const [inProgressStatusName, setInProgressStatusName] =
+    useState<string>('In Progress');
+  const [reviewStatusName, setReviewStatusName] = useState<string>('Review');
   const [inProgress, setInProgress] = useState<boolean>(false);
   const [inProgressPoints, setInProgressPoints] = useState<number>(0);
   const [plannedPoints, setPlannedPoints] = useState<number>(0);
@@ -11,16 +14,23 @@ const Popup = () => {
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       chrome.storage.local.get().then((data) => {
+        if (data.inProgressStatusName)
+          setInProgressStatusName(data.inProgressStatusName);
+        if (data.reviewStatusName) setReviewStatusName(data.reviewStatusName);
         if (data.plannedPoints) setPlannedPoints(data.plannedPoints);
         if (data.totalPoints) setTotalPoints(data.totalPoints);
         setInProgress(!!data.inProgress);
       });
       const tab = tabs[0];
       if (tab.id) {
-        chrome.tabs.sendMessage(tab.id, { type: 'GetPoints' }, (points) => {
-          setInProgressPoints(points.inProgressPoints);
-          setReviewPoints(points.reviewPoints);
-        });
+        chrome.tabs.sendMessage(
+          tab.id,
+          { type: 'GetPoints', inProgressStatusName, reviewStatusName },
+          (points) => {
+            setInProgressPoints(points.inProgressPoints);
+            setReviewPoints(points.reviewPoints);
+          },
+        );
       }
     });
   }, []);
@@ -47,18 +57,17 @@ const Popup = () => {
       .then(() => console.log('Finished!'));
   };
 
-  const clear = () => {
-    chrome.storage.local
-      .remove(['plannedPoints', 'totalPoints'])
-      .then(() => console.log('Removed PlannedPoints and totalPoints'));
-  };
-
   return (
     <>
-      <ul style={{ minWidth: '700px' }}>
+      <h6>Point information</h6>
+      <ul style={{ minWidth: '300px' }}>
         <li>Planned Points: {plannedPoints}</li>
-        <li>In Progress Points: {inProgressPoints}</li>
-        <li>Review Points: {reviewPoints}</li>
+        <li>
+          {inProgressStatusName} Points: {inProgressPoints}
+        </li>
+        <li>
+          {reviewStatusName} Points: {reviewPoints}
+        </li>
         <li>
           Finished Points: {inProgress ? plannedPoints - inProgressPoints : '-'}
         </li>
@@ -70,7 +79,7 @@ const Popup = () => {
       <button onClick={finished} disabled={!inProgress}>
         Finished
       </button>
-      <button onClick={clear}>Clear</button>
+      <a href={chrome.runtime.getURL('options.html')}>Options</a>
     </>
   );
 };
