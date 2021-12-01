@@ -10,58 +10,58 @@ import { Stat, StatLabel, StatNumber, StatGroup } from '@chakra-ui/react';
 import { Stack } from '@chakra-ui/react';
 
 const Popup = () => {
-  const [iterationNumber, setIterationNumber] = useState<number>(0);
   const [inProgress, setInProgress] = useState<boolean>(false);
-  const [inProgressPoints, setInProgressPoints] = useState<number>(0);
-  const [plannedPoints, setPlannedPoints] = useState<number>(0);
-  const [totalPoints, setTotalPoints] = useState<number>(0);
+  const [iterationNumber, setIterationNumber] = useState<number>(0);
+  const [prevDonePoint, setPrevDonePoint] = useState<number>(0);
+  const [currentDonePoint, setCurrentDonePoint] = useState<number>(0);
+  const [totalPoint, setTotalPoint] = useState<number>(0);
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       chrome.storage.local.get().then((data) => {
-        if (data?.plannedPoints) setPlannedPoints(data.plannedPoints);
-        if (data?.totalPoints) setTotalPoints(data.totalPoints);
         if (data?.iterationNumber) setIterationNumber(data.iterationNumber);
+        if (data?.prevDonePoint) setPrevDonePoint(data.prevDonePoint);
+        if (data?.totalPoint) setTotalPoint(data.totalPoint);
         setInProgress(!!data?.inProgress);
       });
       const tab = tabs[0];
       if (tab.id) {
-        chrome.tabs.sendMessage(
-          tab.id,
-          { type: 'GetPoints', doneStatusName: 'Done' },
-          (points) => {
-            setInProgressPoints(points.inProgressPoints);
-          },
-        );
+        chrome.tabs.sendMessage(tab.id, { doneStatusName: 'Done' }, (point) => {
+          setCurrentDonePoint(point.point);
+        });
       }
     });
   }, []);
 
   const start = () => {
     setInProgress(true);
-    setPlannedPoints(inProgressPoints);
+    setIterationNumber(iterationNumber + 1);
     chrome.storage.local
-      .set({ inProgress: true, plannedPoints: inProgressPoints })
+      .set({
+        inProgress: true,
+        iterationNumber: iterationNumber + 1,
+        prevDonePoint: currentDonePoint,
+      })
       .then(() => console.log('Started!'));
   };
 
   const finished = () => {
     setInProgress(false);
-    setPlannedPoints(0);
-    const total = totalPoints + Math.max(0, plannedPoints - inProgressPoints);
-    setTotalPoints(total);
+    const tmpTotalPoint =
+      totalPoint + Math.max(0, currentDonePoint - prevDonePoint);
+    setTotalPoint(tmpTotalPoint);
     chrome.storage.local
       .set({
         inProgress: false,
-        totalPoints: total,
-        plannedPoints: 0,
+        totalPoint: tmpTotalPoint,
+        prevDonePoint: 0,
       })
       .then(() => console.log('Finished!'));
   };
 
   return (
     <Container p={4} w={500}>
-      <Text fontSize="xl">Point information</Text>
+      <Text fontSize="xl">Story Point Information</Text>
       <Divider />
       <StatGroup pt={2}>
         <Stat>
@@ -69,25 +69,15 @@ const Popup = () => {
           <StatNumber>{iterationNumber}</StatNumber>
         </Stat>
         <Stat>
-          <StatLabel>Total</StatLabel>
-          <StatNumber>{totalPoints}</StatNumber>
+          <StatLabel>Total Point</StatLabel>
+          <StatNumber>{totalPoint}</StatNumber>
         </Stat>
         <Stat>
           <StatLabel>Velocity</StatLabel>
           <StatNumber>
-            {0 < iterationNumber ? totalPoints / iterationNumber : '-'}
-          </StatNumber>
-        </Stat>
-      </StatGroup>
-      <StatGroup pt={2}>
-        <Stat>
-          <StatLabel>Planned</StatLabel>
-          <StatNumber>{plannedPoints}</StatNumber>
-        </Stat>
-        <Stat>
-          <StatLabel>Done</StatLabel>
-          <StatNumber>
-            {inProgress ? Math.max(plannedPoints - inProgressPoints, 0) : '-'}
+            {0 < iterationNumber
+              ? Math.floor(totalPoint / iterationNumber)
+              : '-'}
           </StatNumber>
         </Stat>
       </StatGroup>

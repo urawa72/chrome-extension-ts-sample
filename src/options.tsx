@@ -2,22 +2,16 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 
 const Options = () => {
-  const [inProgressStatusName, setInProgressStatusName] =
-    useState<string>('In Progress');
-  const [reviewStatusName, setReviewStatusName] = useState<string>('Review');
+  const [doneStatusName, setDoneStatusName] = useState<string>('Done');
   const [iterationNumber, setIterationNumber] = useState<number>(0);
   const [inProgress, setInProgress] = useState<boolean>(false);
-  const [plannedPoints, setPlannedPoints] = useState<number>(0);
-  const [totalPoints, setTotalPoints] = useState<number>(0);
+  const [totalPoint, setTotalPoint] = useState<number>(0);
 
   useEffect(() => {
     chrome.storage.local.get().then((data) => {
-      if (data.inProgressStatusName)
-        setInProgressStatusName(data.inProgressStatusName);
-      if (data.reviewStatusName) setReviewStatusName(data.reviewStatusName);
+      if (data.doneStatusName) setDoneStatusName(data.doneStatusName);
       if (data.iterationNumber) setIterationNumber(data.iterationNumber);
-      if (data.plannedPoints) setPlannedPoints(data.plannedPoints);
-      if (data.totalPoints) setTotalPoints(data.totalPoints);
+      if (data.totalPoint) setTotalPoint(data.totalPoint);
       setInProgress(!!data.inProgress);
     });
   }, []);
@@ -25,19 +19,17 @@ const Options = () => {
   const saveOptions = () => {
     chrome.storage.local
       .set({
-        inProgressStatusName,
-        reviewStatusName,
+        doneStatusName,
         iterationNumber,
         inProgress,
-        totalPoints,
-        plannedPoints,
+        totalPoint,
       })
       .then(() => console.log('Saved!'));
   };
 
   const clearOptions = () => {
     chrome.storage.local
-      .remove(['iterationNumber', 'inProgress', 'totalPoints', 'plannedPoints'])
+      .remove(['iterationNumber', 'inProgress', 'totalPoint'])
       .then(() => console.log('Cleared!'));
   };
 
@@ -46,25 +38,12 @@ const Options = () => {
       <h6>Status information</h6>
       <ul style={{ minWidth: '400px' }}>
         <li>
-          <label htmlFor="in-progress-status-name">
-            In Progress Status Name
-          </label>
+          <label htmlFor="done-status-name">Done Status Name</label>
           <input
-            id="in-progress-status-name"
+            id="done-status-name"
             type="text"
-            value={inProgressStatusName}
-            onChange={(event) => setInProgressStatusName(event.target.value)}
-          />
-        </li>
-        <li>
-          <label htmlFor="review-status-name">
-            Wating for Review Status Name
-          </label>
-          <input
-            id="review-status-name"
-            type="text"
-            value={reviewStatusName}
-            onChange={(event) => setReviewStatusName(event.target.value)}
+            value={doneStatusName}
+            onChange={(event) => setDoneStatusName(event.target.value)}
           />
         </li>
       </ul>
@@ -90,21 +69,12 @@ const Options = () => {
           />
         </li>
         <li>
-          <label htmlFor="planned-points">Planned Points</label>
-          <input
-            id="planned-points"
-            type="number"
-            value={plannedPoints}
-            onChange={(event) => setPlannedPoints(Number(event.target.value))}
-          />
-        </li>
-        <li>
           <label htmlFor="total-points">Total Points</label>
           <input
             id="total-points"
             type="number"
-            value={totalPoints}
-            onChange={(event) => setTotalPoints(Number(event.target.value))}
+            value={totalPoint}
+            onChange={(event) => setTotalPoint(Number(event.target.value))}
           />
         </li>
       </ul>
