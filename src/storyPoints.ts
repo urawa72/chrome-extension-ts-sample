@@ -1,5 +1,5 @@
 // ref: https://gist.github.com/fr-ser/ded7690b245223094cd876069456ed6c
-export const debounce = <F extends Function>(func: F, waitMs: number): F => {
+const debounce = <F extends Function>(func: F, waitMs: number): F => {
   let timeoutID: number;
   return <F>(<any>function (this: any, ...args: any[]) {
     clearTimeout(timeoutID);
@@ -62,6 +62,7 @@ const observer = new MutationObserver(debounce(callback, waitMs));
 const target = document.querySelector('[data-test-id="board-view"]');
 
 if (!!target) {
+  callback();
   observer.observe(target, { attributes: true, subtree: true });
 } else {
   throw new Error('[GitHub Project Story Points] board-view is missing');

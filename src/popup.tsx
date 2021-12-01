@@ -11,22 +11,14 @@ import { Stack } from '@chakra-ui/react';
 
 const Popup = () => {
   const [iterationNumber, setIterationNumber] = useState<number>(0);
-  const [inProgressStatusName, setInProgressStatusName] =
-    useState<string>('In Progress');
-  const [reviewStatusName, setReviewStatusName] = useState<string>('Review');
   const [inProgress, setInProgress] = useState<boolean>(false);
   const [inProgressPoints, setInProgressPoints] = useState<number>(0);
   const [plannedPoints, setPlannedPoints] = useState<number>(0);
-  const [reviewPoints, setReviewPoints] = useState<number>(0);
   const [totalPoints, setTotalPoints] = useState<number>(0);
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       chrome.storage.local.get().then((data) => {
-        if (data?.inProgressStatusName) {
-          setInProgressStatusName(data.inProgressStatusName);
-        }
-        if (data?.reviewStatusName) setReviewStatusName(data.reviewStatusName);
         if (data?.plannedPoints) setPlannedPoints(data.plannedPoints);
         if (data?.totalPoints) setTotalPoints(data.totalPoints);
         if (data?.iterationNumber) setIterationNumber(data.iterationNumber);
@@ -36,10 +28,9 @@ const Popup = () => {
       if (tab.id) {
         chrome.tabs.sendMessage(
           tab.id,
-          { type: 'GetPoints', inProgressStatusName, reviewStatusName },
+          { type: 'GetPoints', doneStatusName: 'Done' },
           (points) => {
             setInProgressPoints(points.inProgressPoints);
-            setReviewPoints(points.reviewPoints);
           },
         );
       }
@@ -94,17 +85,9 @@ const Popup = () => {
           <StatNumber>{plannedPoints}</StatNumber>
         </Stat>
         <Stat>
-          <StatLabel>In Progress</StatLabel>
-          <StatNumber>{inProgressPoints}</StatNumber>
-        </Stat>
-        <Stat>
-          <StatLabel>Review</StatLabel>
-          <StatNumber>{reviewPoints}</StatNumber>
-        </Stat>
-        <Stat>
           <StatLabel>Done</StatLabel>
           <StatNumber>
-            {inProgress ? plannedPoints - inProgressPoints : '-'}
+            {inProgress ? Math.max(plannedPoints - inProgressPoints, 0) : '-'}
           </StatNumber>
         </Stat>
       </StatGroup>
