@@ -30,7 +30,7 @@ const getBoards = (msg: GetPointsEvent) => {
     const b: HTMLElement | null = document.getElementById(board.id);
     if (b && b.dataset.boardColumn === msg.inProgressStatusName) {
       const pointNodes = b.querySelectorAll(
-        '[data-test-id="custom-label-point"]',
+        '[data-test-id="custom-label-Point"]',
       );
       const points = Array.from(pointNodes).map((p) => Number(p.textContent));
       inProgressPoints = points.reduce((acc: number, cur: number) => {
@@ -39,7 +39,7 @@ const getBoards = (msg: GetPointsEvent) => {
     }
     if (b && b.dataset.boardColumn === msg.reviewStatusName) {
       const pointNodes = b.querySelectorAll(
-        '[data-test-id="custom-label-point"]',
+        '[data-test-id="custom-label-Point"]',
       );
       const points = Array.from(pointNodes).map((p) => Number(p.textContent));
       reviewPoints = points.reduce((acc: number, cur: number) => {
