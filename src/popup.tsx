@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { ChakraProvider } from '@chakra-ui/react';
-import { Button } from '@chakra-ui/react';
-import { Container } from '@chakra-ui/react';
-import { Divider } from '@chakra-ui/react';
-import { Text } from '@chakra-ui/react';
-import { Link } from '@chakra-ui/react';
-import { Stat, StatLabel, StatNumber, StatGroup } from '@chakra-ui/react';
-import { Stack } from '@chakra-ui/react';
+import {
+  ChakraProvider,
+  Button,
+  Container,
+  Divider,
+  Text,
+  Link,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatGroup,
+  Stack,
+} from '@chakra-ui/react';
 
 const Popup = () => {
   const [inProgress, setInProgress] = useState<boolean>(false);
+  const [doneStatusName, setDoneStatusName] = useState<string>('Done');
   const [iterationNumber, setIterationNumber] = useState<number>(0);
   const [prevDonePoint, setPrevDonePoint] = useState<number>(0);
   const [currentDonePoint, setCurrentDonePoint] = useState<number>(0);
@@ -19,6 +25,7 @@ const Popup = () => {
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       chrome.storage.local.get().then((data) => {
+        if (data?.doneStatusName) setDoneStatusName(data.doneStatusName);
         if (data?.iterationNumber) setIterationNumber(data.iterationNumber);
         if (data?.prevDonePoint) setPrevDonePoint(data.prevDonePoint);
         if (data?.totalPoint) setTotalPoint(data.totalPoint);
@@ -26,8 +33,8 @@ const Popup = () => {
       });
       const tab = tabs[0];
       if (tab.id) {
-        chrome.tabs.sendMessage(tab.id, { doneStatusName: 'Done' }, (point) => {
-          setCurrentDonePoint(point.point);
+        chrome.tabs.sendMessage(tab.id, { doneStatusName }, (data) => {
+          setCurrentDonePoint(Number(data));
         });
       }
     });
@@ -36,6 +43,7 @@ const Popup = () => {
   const start = () => {
     setInProgress(true);
     setIterationNumber(iterationNumber + 1);
+    setTotalPoint(currentDonePoint);
     chrome.storage.local
       .set({
         inProgress: true,
@@ -47,8 +55,7 @@ const Popup = () => {
 
   const finished = () => {
     setInProgress(false);
-    const tmpTotalPoint =
-      totalPoint + Math.max(0, currentDonePoint - prevDonePoint);
+    const tmpTotalPoint = totalPoint + currentDonePoint - prevDonePoint;
     setTotalPoint(tmpTotalPoint);
     chrome.storage.local
       .set({

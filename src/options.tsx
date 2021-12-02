@@ -1,92 +1,109 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
+import {
+  ChakraProvider,
+  Alert,
+  AlertIcon,
+  Stack,
+  Input,
+  Container,
+  Divider,
+  Text,
+  Button,
+  Link,
+} from '@chakra-ui/react';
 
 const Options = () => {
   const [doneStatusName, setDoneStatusName] = useState<string>('Done');
   const [iterationNumber, setIterationNumber] = useState<number>(0);
-  const [inProgress, setInProgress] = useState<boolean>(false);
   const [totalPoint, setTotalPoint] = useState<number>(0);
+  const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
     chrome.storage.local.get().then((data) => {
       if (data.doneStatusName) setDoneStatusName(data.doneStatusName);
       if (data.iterationNumber) setIterationNumber(data.iterationNumber);
       if (data.totalPoint) setTotalPoint(data.totalPoint);
-      setInProgress(!!data.inProgress);
     });
   }, []);
 
-  const saveOptions = () => {
+  const save = () => {
     chrome.storage.local
       .set({
         doneStatusName,
         iterationNumber,
-        inProgress,
         totalPoint,
       })
-      .then(() => console.log('Saved!'));
+      .then(() => setMessage('Saved in local storage!'));
   };
 
-  const clearOptions = () => {
+  const clear = () => {
     chrome.storage.local
-      .remove(['iterationNumber', 'inProgress', 'totalPoint'])
-      .then(() => console.log('Cleared!'));
+      .remove(['doneStatusName', 'iterationNumber', 'totalPoint'])
+      .then(() => {
+        setMessage('Cleared local storage values!');
+        setDoneStatusName('Done');
+        setIterationNumber(0);
+        setTotalPoint(0);
+      });
   };
 
   return (
-    <>
-      <h6>Status information</h6>
-      <ul style={{ minWidth: '400px' }}>
-        <li>
-          <label htmlFor="done-status-name">Done Status Name</label>
-          <input
-            id="done-status-name"
-            type="text"
-            value={doneStatusName}
-            onChange={(event) => setDoneStatusName(event.target.value)}
-          />
-        </li>
-      </ul>
-      <hr />
-      <h6>Point information</h6>
-      <ul style={{ minWidth: '400px' }}>
-        <li>
-          <label htmlFor="iteration-number">Iteration Number</label>
-          <input
-            id="iteration-number"
-            type="number"
-            value={iterationNumber}
-            onChange={(event) => setIterationNumber(Number(event.target.value))}
-          />
-        </li>
-        <li>
-          <label htmlFor="in-progress">In Progress</label>
-          <input
-            id="in-progress"
-            type="checkbox"
-            checked={inProgress}
-            onChange={(event) => setInProgress(event.target.checked)}
-          />
-        </li>
-        <li>
-          <label htmlFor="total-points">Total Points</label>
-          <input
-            id="total-points"
-            type="number"
-            value={totalPoint}
-            onChange={(event) => setTotalPoint(Number(event.target.value))}
-          />
-        </li>
-      </ul>
-      <button onClick={saveOptions}>Save</button>
-      <button onClick={clearOptions}>Clear</button>
-    </>
+    <Container p={4} w={500}>
+      <Stack>
+        <Text fontSize="xl">Settings</Text>
+        <Divider />
+        {!!message && (
+          <Alert status="success" variant="subtle" height="30px" p={2}>
+            <AlertIcon />
+            {message}
+          </Alert>
+        )}
+        <label htmlFor="done-status-name">Done Status Name</label>
+        <Input
+          id="done-status-name"
+          type="text"
+          value={doneStatusName}
+          onChange={(event) => setDoneStatusName(event.target.value)}
+          size="xs"
+        />
+        <label htmlFor="iteration-number">Iteration Number</label>
+        <Input
+          id="iteration-number"
+          type="number"
+          value={iterationNumber}
+          onChange={(event) => setIterationNumber(Number(event.target.value))}
+          size="xs"
+        />
+        <label htmlFor="total-point">Total Point</label>
+        <Input
+          id="total-point"
+          type="number"
+          value={totalPoint}
+          onChange={(event) => setTotalPoint(Number(event.target.value))}
+          size="xs"
+        />
+      </Stack>
+      <Stack direction="row" align="center" pt={4}>
+        <Button onClick={save} size="xs" colorScheme="teal" width="80px">
+          Save
+        </Button>
+        <Button onClick={clear} size="xs" colorScheme="teal" width="80px">
+          Clear
+        </Button>
+        <Link color="teal.500" href={chrome.runtime.getURL('popup.html')}>
+          Information
+        </Link>
+      </Stack>
+    </Container>
   );
 };
 
 ReactDOM.render(
   <React.StrictMode>
-    <Options />
+    <ChakraProvider>
+      <Options />
+    </ChakraProvider>
   </React.StrictMode>,
   document.getElementById('root'),
 );

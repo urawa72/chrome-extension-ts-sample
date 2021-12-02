@@ -16,6 +16,19 @@ export const getPoints = (pointNodes: NodeListOf<Element>) => {
     }, 0);
 };
 
+export const getTargetBoardPoint = (boardName: string) => {
+  let targetPoint = 0;
+  getBoards().forEach((board) => {
+    if (board && board.dataset.boardColumn === boardName) {
+      const targetPointNodes = getPointNodes(board);
+      if (targetPointNodes.length !== 0) {
+        targetPoint = getPoints(targetPointNodes);
+      }
+    }
+  });
+  return targetPoint;
+};
+
 // ref: https://gist.github.com/fr-ser/ded7690b245223094cd876069456ed6c
 export const debounce = <F extends Function>(func: F, waitMs: number): F => {
   let timeoutID: number;
